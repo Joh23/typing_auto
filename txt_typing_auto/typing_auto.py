@@ -8,30 +8,52 @@ def press_and_release(key):
     keyboard.press(key)
     keyboard.release(key)
 
-def switch_input_mode():
+def switch_to_korean():
+    press_and_release(Key.cmd)
+    press_and_release(Key.space)
+    time.sleep(0.3)  # 충분한 딜레이 제공
+
+def switch_to_english():
     press_and_release(Key.cmd)
     press_and_release(Key.space)
     time.sleep(0.3)  # 충분한 딜레이 제공
 
 def type_text_block(block, korean_mode):
-    print(f"입력 모드: {'한글' if korean_mode else '영문'}, 블록: {block}")  # 디버그 출력
     if korean_mode:
-        switch_input_mode()
+        switch_to_korean()
+    else:
+        switch_to_english()
+
     for char in block:
         keyboard.type(char)
         time.sleep(0.1)
-    if korean_mode:
-        switch_input_mode()  # 영문 모드로 다시 전환
 
 def type_text(text):
-    sentences = text.split('.')
-    for sentence in sentences:
-        if not sentence.strip():
+    korean_mode = None
+    block = ''
+    
+    for char in text:
+        if char in [' ', '.', '\n']:
+            block += char
             continue
         
-        korean_mode = any('가' <= char <= '힣' for char in sentence)
-        type_text_block(sentence.strip() + '. ', korean_mode)
-        time.sleep(0.5)  # 문장 사이 딜레이
+        if '가' <= char <= '힣':
+            if korean_mode is None or korean_mode is False:
+                if block:
+                    type_text_block(block, korean_mode)
+                    block = ''
+                korean_mode = True
+        else:
+            if korean_mode is None or korean_mode is True:
+                if block:
+                    type_text_block(block, korean_mode)
+                    block = ''
+                korean_mode = False
+        
+        block += char
+    
+    if block:
+        type_text_block(block, korean_mode)
 
 def human_like_typing(text, speed=0.1):
     print("타이핑을 시작합니다...")
